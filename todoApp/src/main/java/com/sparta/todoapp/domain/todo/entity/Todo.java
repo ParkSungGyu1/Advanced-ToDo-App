@@ -6,7 +6,10 @@ import com.sparta.todoapp.domain.todo.dto.TodoResponseDto;
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @NoArgsConstructor
@@ -25,7 +28,7 @@ public class Todo extends BaseTimeStamp {
     private String description;
 
     @OneToMany(mappedBy = "todo", cascade = CascadeType.REMOVE)
-    private List<Comment> comments;
+    private List<Comment> comments = new ArrayList<>();
 
     public static Todo from(TodoRequestDto requestDto) {
         Todo todo = new Todo();
@@ -45,6 +48,7 @@ public class Todo extends BaseTimeStamp {
              userName,
              title,
              description,
+             comments.stream().map(Comment::to).toList(),
              getCreatedAt(),
              getModifiedAt()
      );
