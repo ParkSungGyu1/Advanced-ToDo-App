@@ -6,6 +6,8 @@ import com.sparta.todoapp.domain.todo.entity.Comment;
 import com.sparta.todoapp.domain.todo.entity.Todo;
 import com.sparta.todoapp.domain.todo.repository.CommentRepository;
 import com.sparta.todoapp.domain.todo.repository.TodoRepository;
+import com.sparta.todoapp.domain.user.entity.Member;
+import com.sparta.todoapp.domain.user.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,11 +18,13 @@ public class CommentService {
 
     private final TodoRepository todoRepository;
     private final CommentRepository commentRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public CommentResponseDto createComment(CommentRequestDto requestDto, Long todoId) {
         Todo todo = todoRepository.findTodoById(todoId);
-        Comment comment = Comment.from(requestDto, todo);
+        Member member = memberRepository.findById(requestDto.getMemberId()).orElseThrow(() -> new IllegalArgumentException("Todo not found with id: " + requestDto.getMemberId()));
+        Comment comment = Comment.from(requestDto, todo, member);
         Comment savedComment = commentRepository.save(comment);
         return savedComment.to();
     }

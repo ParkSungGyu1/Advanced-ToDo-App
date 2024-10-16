@@ -1,14 +1,12 @@
-package com.sparta.todoapp.domain.todo.dto;
-
+package com.sparta.todoapp.domain.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class CommentResponseDto {
+public class MemberResponseDto {
     private Long id;
-    private String comment;
     private String memberName;
-
+    private String email;
 }

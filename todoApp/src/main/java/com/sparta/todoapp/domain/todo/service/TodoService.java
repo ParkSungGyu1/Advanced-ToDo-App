@@ -5,6 +5,8 @@ import com.sparta.todoapp.domain.todo.dto.TodoResponseDto;
 import com.sparta.todoapp.domain.todo.dto.TodoResponsePage;
 import com.sparta.todoapp.domain.todo.entity.Todo;
 import com.sparta.todoapp.domain.todo.repository.TodoRepository;
+import com.sparta.todoapp.domain.user.entity.Member;
+import com.sparta.todoapp.domain.user.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,10 +24,12 @@ import java.util.stream.Collectors;
 public class TodoService {
 
     private final TodoRepository todoRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public TodoResponseDto createTodo(TodoRequestDto requestDto) {
-        Todo todo = todoRepository.save(Todo.from(requestDto));
+        Member member = memberRepository.findById(requestDto.getMemberId()).orElseThrow(() -> new IllegalArgumentException("Todo not found with id: " + requestDto.getMemberId()));
+        Todo todo = todoRepository.save(Todo.from(requestDto, member));
         return todo.to();
     }
 
@@ -59,5 +63,12 @@ public class TodoService {
     public void deleteTodo(Long todoId) {
         todoRepository.findTodoById(todoId);
         todoRepository.deleteById(todoId);
+    }
+
+    @Transactional
+    public void assignMember(Long todoId, Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new IllegalArgumentException("Todo not found with id: " + memberId));
+        Todo todo = todoRepository.findTodoById(todoId);
+        todo.addMember(member);
     }
 }

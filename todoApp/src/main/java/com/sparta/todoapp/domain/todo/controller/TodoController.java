@@ -4,13 +4,11 @@ import com.sparta.todoapp.domain.todo.dto.TodoRequestDto;
 import com.sparta.todoapp.domain.todo.dto.TodoResponseDto;
 import com.sparta.todoapp.domain.todo.dto.TodoResponsePage;
 import com.sparta.todoapp.domain.todo.service.TodoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 @RestController
@@ -22,7 +20,7 @@ public class TodoController {
 
     //일정 생성하기
     @PostMapping()
-    public ResponseEntity<TodoResponseDto> createTodo(@RequestBody TodoRequestDto requestDto){
+    public ResponseEntity<TodoResponseDto> createTodo(@RequestBody @Valid TodoRequestDto requestDto){
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(todoService.createTodo(requestDto));
@@ -68,6 +66,14 @@ public class TodoController {
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();
+    }
 
+    //일정 담당자 배정
+    @PostMapping("/{todoId}/assign/{memberId}")
+    public ResponseEntity<Void> assignMemberToTodo(@PathVariable Long memberId, @PathVariable Long todoId){
+        todoService.assignMember(memberId, todoId);
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 }

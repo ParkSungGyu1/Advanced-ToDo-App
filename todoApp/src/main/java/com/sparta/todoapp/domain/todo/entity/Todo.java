@@ -3,23 +3,23 @@ package com.sparta.todoapp.domain.todo.entity;
 import com.sparta.todoapp.common.entity.BaseTimeStamp;
 import com.sparta.todoapp.domain.todo.dto.TodoRequestDto;
 import com.sparta.todoapp.domain.todo.dto.TodoResponseDto;
+import com.sparta.todoapp.domain.user.entity.Member;
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity
 @NoArgsConstructor
 public class Todo extends BaseTimeStamp {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column
-    private String userName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member creator;
 
     @Column
     private String title;
@@ -30,14 +30,20 @@ public class Todo extends BaseTimeStamp {
     @OneToMany(mappedBy = "todo", cascade = CascadeType.REMOVE)
     private List<Comment> comments = new ArrayList<>();
 
-    public static Todo from(TodoRequestDto requestDto) {
+    @ManyToMany
+    @JoinTable(name = "schedule",
+            joinColumns = @JoinColumn(name = "todo_id"),
+            inverseJoinColumns = @JoinColumn(name = "member_id")) // 반대 위치인 User Entity 에서 중간 테이블로 조인할 컬럼 설정
+    private List<Member> memberList = new ArrayList<>();
+
+    public static Todo from(TodoRequestDto requestDto, Member member) {
         Todo todo = new Todo();
-        todo.initData(requestDto);
+        todo.initData(requestDto, member);
         return todo;
     }
 
-    private void initData(TodoRequestDto requestDto) {
-        this.userName = requestDto.getUserName();
+    private void initData(TodoRequestDto requestDto, Member member) {
+        this.creator = member;
         this.title = requestDto.getTitle();
         this.description = requestDto.getDescription();
     }
@@ -45,7 +51,7 @@ public class Todo extends BaseTimeStamp {
     public TodoResponseDto to() {
      return new TodoResponseDto(
              id,
-             userName,
+             this.creator.getMemberName(),
              title,
              description,
              comments.stream().map(Comment::to).toList(),
@@ -55,8 +61,12 @@ public class Todo extends BaseTimeStamp {
     }
 
     public void updateData(TodoRequestDto requestDto) {
-        this.userName= requestDto.getUserName();
         this.title = requestDto.getTitle();
         this.description = requestDto.getDescription();
+    }
+
+    public void addMember(Member member){
+        this.memberList.add(member);
+        member.getTodoList().add(this);
     }
 }
